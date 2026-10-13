@@ -44,7 +44,17 @@ class FeroxbusterEngine {
     int timeout = 4,
   }) async {
     final startTime = DateTime.now();
-    final normalizedUrl = url.startsWith('http') ? url : 'http://$url';
+    var normalizedUrl = url.startsWith('http') ? url : 'http://$url';
+
+    // Test connectivity and fallback to http if https fails
+    if (normalizedUrl.startsWith('https://')) {
+      try {
+        await http.head(Uri.parse(normalizedUrl)).timeout(const Duration(seconds: 3));
+      } catch (_) {
+        normalizedUrl = normalizedUrl.replaceFirst('https://', 'http://');
+      }
+    }
+
     final base = normalizedUrl.endsWith('/') ? normalizedUrl : '$normalizedUrl/';
     final words = wordlist ?? _wordlist;
     final allResults = <FeroxEntry>[];
